@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Garmin's Word Adventure</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(#c9f1ff, #f8ffe8);
+      color: #213;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+    }
+    .app {
+      width: 100%;
+      max-width: 430px;
+      min-height: 100vh;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .title {
+      text-align: center;
+      font-size: 22px;
+      font-weight: 800;
+      margin-top: 4px;
+    }
+    .card {
+      background: rgba(255,255,255,0.88);
+      border-radius: 28px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-align: center;
+    }
+    .scene {
+      font-size: 110px;
+      line-height: 1.1;
+      margin: 8px 0 10px;
+    }
+    .thai {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 8px 0;
+    }
+    .sentence {
+      font-size: 22px;
+      line-height: 1.35;
+      margin: 10px 0;
+    }
+    .blank {
+      display: inline-block;
+      min-width: 110px;
+      border-bottom: 4px solid #333;
+      color: transparent;
+    }
+    .hint {
+      font-size: 15px;
+      opacity: 0.8;
+      margin-top: 6px;
+    }
+    .feedback {
+      min-height: 54px;
+      font-size: 24px;
+      font-weight: 800;
+      margin: 12px 0;
+    }
+    .heard {
+      min-height: 24px;
+      font-size: 15px;
+      opacity: 0.75;
+    }
+    button {
+      border: none;
+      border-radius: 22px;
+      font-size: 22px;
+      font-weight: 800;
+      padding: 16px;
+      cursor: pointer;
+    }
+    .mic {
+      background: #ffdf4d;
+      color: #221;
+      width: 100%;
+      min-height: 68px;
+    }
+    .next {
+      background: #73e28b;
+      color: #103817;
+      width: 100%;
+      display: none;
+      min-height: 60px;
+    }
+    .small {
+      font-size: 14px;
+      text-align: center;
+      opacity: 0.65;
+      padding-bottom: 4px;
+    }
+    .progress {
+      text-align: center;
+      font-size: 15px;
+      opacity: 0.75;
+      font-weight: 700;
+    }
+    .answer {
+      color: #0a7c2f;
+      font-weight: 900;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="title">Garmin's Science Words</div>
+    <div class="progress" id="progress"></div>
+
+    <section class="card">
+      <div>
+        <div class="scene" id="emoji">🪶</div>
+        <div class="thai" id="thai">ขนนก</div>
+        <div class="sentence" id="sentence">The chick found a <span class="blank">word</span>.</div>
+        <div class="hint">แตะปุ่ม แล้วพูดคำศัพท์ภาษาอังกฤษ</div>
+      </div>
+
+      <div>
+        <div class="feedback" id="feedback">Ready, Garmin?</div>
+        <div class="heard" id="heard"></div>
+        <button class="mic" id="micBtn">🎤 พูดคำตอบ</button>
+        <button class="next" id="nextBtn">ไปต่อ ➜</button>
+      </div>
+    </section>
+
+    <div class="small">Best on Chrome mobile. No score. Just play.</div>
+  </main>
+
+<script>
+const cards = [
+  {
+    word: "feather",
+    thai: "ขนนก",
+    emoji: "🪶",
+    sentence: "The chick found a <span class='blank'>word</span>.",
+    success: "Yes! A feather! The chick is happy."
+  },
+  {
+    word: "beak",
+    thai: "จะงอยปาก",
+    emoji: "🐤",
+    sentence: "The chick eats with its <span class='blank'>word</span>.",
+    success: "Yes! Beak! The chick can eat."
+  },
+  {
+    word: "scale",
+    thai: "เกล็ด",
+    emoji: "🦎",
+    sentence: "The green lizard has a <span class='blank'>word</span>.",
+    success: "Yes! Scale! The lizard is shiny."
+  },
+  {
+    word: "danger",
+    thai: "อันตราย",
+    emoji: "⚠️",
+    sentence: "Garmin sees <span class='blank'>word</span>.",
+    success: "Yes! Danger! Garmin must be careful."
+  },
+  {
+    word: "shelter",
+    thai: "ที่หลบภัย",
+    emoji: "🏠",
+    sentence: "Garmin builds a <span class='blank'>word</span>.",
+    success: "Yes! Shelter! Everyone is safe."
+  }
+];
+
+let index = 0;
+let recognition = null;
+
+const emoji = document.getElementById("emoji");
+const thai = document.getElementById("thai");
+const sentence = document.getElementById("sentence");
+const feedback = document.getElementById("feedback");
+const heard = document.getElementById("heard");
+const micBtn = document.getElementById("micBtn");
+const nextBtn = document.getElementById("nextBtn");
+const progress = document.getElementById("progress");
+
+function loadCard() {
+  const c = cards[index];
+  emoji.textContent = c.emoji;
+  thai.textContent = c.thai;
+  sentence.innerHTML = c.sentence;
+  feedback.textContent = "Garmin, what is this?";
+  heard.textContent = "";
+  micBtn.style.display = "block";
+  nextBtn.style.display = "none";
+  progress.textContent = `${index + 1} / ${cards.length}`;
+}
+
+function normalize(text) {
+  return text.toLowerCase().replace(/[^a-z]/g, "");
+}
+
+function isCloseEnough(said, target) {
+  const s = normalize(said);
+  const t = normalize(target);
+  if (!s) return false;
+  if (s.includes(t) || t.includes(s)) return true;
+
+  // small forgiveness for child pronunciation / recognition typo
+  const distance = levenshtein(s, t);
+  return distance <= 2;
+}
+
+function levenshtein(a, b) {
+  const dp = Array.from({length: a.length + 1}, () => Array(b.length + 1).fill(0));
+  for (let i = 0; i <= a.length; i++) dp[i][0] = i;
+  for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      dp[i][j] = Math.min(
+        dp[i-1][j] + 1,
+        dp[i][j-1] + 1,
+        dp[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1)
+      );
+    }
+  }
+  return dp[a.length][b.length];
+}
+
+function speak(text) {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "en-US";
+  u.rate = 0.85;
+  window.speechSynthesis.speak(u);
+}
+
+function startListening() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    feedback.textContent = "Chrome browser is needed.";
+    heard.textContent = "Speech recognition may not work in this browser.";
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 3;
+
+  feedback.textContent = "Listening...";
+  heard.textContent = "พูดเลย Garmin";
+  micBtn.disabled = true;
+
+  recognition.onresult = (event) => {
+    const results = Array.from(event.results[0]).map(r => r.transcript);
+    const said = results.join(" / ");
+    heard.textContent = `I heard: ${said}`;
+    const target = cards[index].word;
+    const ok = results.some(r => isCloseEnough(r, target));
+
+    if (ok) {
+      feedback.innerHTML = cards[index].success.replace(target, `<span class="answer">${target}</span>`);
+      sentence.innerHTML = cards[index].sentence.replace("<span class='blank'>word</span>", `<span class="answer">${target}</span>`);
+      micBtn.style.display = "none";
+      nextBtn.style.display = "block";
+      speak(target);
+    } else {
+      feedback.textContent = `Almost. Try: ${target}`;
+      speak(target);
+      micBtn.disabled = false;
+    }
+  };
+
+  recognition.onerror = () => {
+    feedback.textContent = "Try again, Garmin.";
+    heard.textContent = "";
+    micBtn.disabled = false;
+  };
+
+  recognition.onend = () => {
+    micBtn.disabled = false;
+  };
+
+  recognition.start();
+}
+
+micBtn.addEventListener("click", startListening);
+
+nextBtn.addEventListener("click", () => {
+  index++;
+  if (index >= cards.length) {
+    emoji.textContent = "🎉";
+    thai.textContent = "เก่งมาก Garmin!";
+    sentence.innerHTML = "You helped the chick today.";
+    feedback.textContent = "Great job!";
+    heard.textContent = "";
+    micBtn.style.display = "none";
+    nextBtn.textContent = "เล่นใหม่";
+    nextBtn.style.display = "block";
+    index = -1;
+    return;
+  }
+  nextBtn.textContent = "ไปต่อ ➜";
+  loadCard();
+});
+
+loadCard();
+</script>
+</body>
+</html>
