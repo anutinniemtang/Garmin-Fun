@@ -46,13 +46,15 @@ body {
 <body>
 
 <div id="game-container">
-    <div id="overlay" onclick="startGame()">PRESS TO START MISSION</div>
-    <div id="sentence-box">Mission Loading...</div>
-    <button id="resetBtn" onclick="resetGame()" style="display:none; position:absolute; top: 60%; left: 45%; font-size: 2vw; padding: 10px 20px;">Play Again</button>
-    <audio id="bgMusic" loop>
-        <source src="game.mp3" type="audio/mpeg">
-    </audio>
-</div>
+        <div id="overlay" onclick="startGame()">PRESS TO START MISSION</div>
+        <div id="sentence-box">Mission Loading...</div>
+        
+        <button id="resetBtn" onclick="resetGame()" style="display:none; position:absolute; top: 60%; left: 45%; font-size: 2vw; padding: 10px 20px; z-index: 20;">Start Mission 2</button>
+        
+        <audio id="bgMusic" loop>
+            <source src="game.mp3" type="audio/mpeg">
+        </audio>
+    </div>
 
 <script>
     const FALL_SPEED = 0.4;
@@ -133,12 +135,11 @@ body {
         }, 20);
     }
 
-    function check(el) {
+   function check(el) {
         if (el.innerText === levels[currentLevel].ans) {
             const fullSentence = levels[currentLevel].sent.replace("___", el.innerText);
             const s = levels[currentLevel].sent.replace("___", `<span class="highlight">${el.innerText}</span>`);
             document.getElementById('sentence-box').innerHTML = s;
-            
             el.style.background = "#28a745";
             
             speak("Correct! " + fullSentence, () => {
@@ -147,17 +148,17 @@ body {
                     if (currentLevel < levels.length) {
                         updateSentence();
                     } else {
-                        // MISSION COMPLETE LOGIC
+                        // FORCE SHOW LOGIC
+                        console.log("Mission Complete - Showing Button");
                         speak("Mission Complete! Gamin is a Hero!");
                         const nextBtn = document.getElementById('resetBtn');
+                        nextBtn.style.display = 'block'; // Make it visible
+                        nextBtn.style.zIndex = '999';    // Put it on top
                         nextBtn.innerText = "Start Mission 2";
                         nextBtn.onclick = function() { window.location.href = 'game2.html'; };
-                        nextBtn.style.display = 'block';
                     }
                 }, 1000);
             });
-        } else {
-            speak("Try again!");
         }
     }
 

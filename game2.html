@@ -48,6 +48,7 @@ body {
 <div id="game-container">
     <div id="overlay" onclick="startGame()">PRESS TO START MISSION</div>
     <div id="sentence-box">Mission Loading...</div>
+<button onclick="window.location.href='index.html'" style="position:absolute; top: 10px; left: 10px;">Back to Mission 1</button>
     <button id="resetBtn" onclick="resetGame()" style="display:none; position:absolute; top: 60%; left: 45%; font-size: 2vw; padding: 10px 20px;">Play Again</button>
     <audio id="bgMusic" loop>
         <source src="game.mp3" type="audio/mpeg">
@@ -144,6 +145,5 @@ body {
 
     function resetGame() { location.reload(); }
 </script>
-<button onclick="window.location.href='index.html'" style="position:absolute; top: 10px; left: 10px;">Back to Mission 1</button>
 </body>
 </html>
