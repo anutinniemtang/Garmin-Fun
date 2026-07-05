@@ -21,20 +21,20 @@ body {
         }
         .highlight { color: #28a745; text-decoration: underline; }
         .word { 
-    /* Increase the hit-box size */
-    padding: 25px 50px; 
+    position: absolute; 
     font-size: 4vw;
-    /* This ensures words are centered well in landscape */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    /* Add a subtle animation so it feels like a button */
+    font-weight: bold; 
+    background: #FFD700; 
+    padding: 20px 40px; 
+    border-radius: 20px;
+    cursor: pointer; 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    white-space: nowrap;
+    /* Remove display: flex and alignment to prevent layout locking */
+    z-index: 5;
     transition: transform 0.1s;
 }
 
-.word:active {
-    transform: scale(0.9); /* Adds a "click" feel so he knows he hit it */
-}
         #overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center;
@@ -100,11 +100,7 @@ body {
         if (currentLevel >= levels.length) return;
         const s = levels[currentLevel].sent;
         document.getElementById('sentence-box').innerHTML = s;
-        
-        // This removes the "___" completely so the AI doesn't say anything for it
         let textToRead = s.replace("___", ""); 
-        
-        // We add a tiny pause where the blank was by splitting the text
         speak(textToRead);
     }
 
@@ -117,13 +113,11 @@ body {
         word.style.left = Math.random() * 60 + 10 + "%"; 
         word.style.top = "-10%";
         
-        word.ontouchstart = function(e) { 
-    e.preventDefault(); // Prevents the browser from simulating a click
-    if (this.dataset.clicked || isSpeaking) return;
-    this.dataset.clicked = "true";
-    check(this); 
-}; 
-      
+        word.addEventListener('mousedown', function() { check(this); });
+        word.addEventListener('touchstart', function(e) { 
+            e.stopPropagation(); 
+            check(this); 
+        });
         
         document.getElementById('game-container').appendChild(word);
         
@@ -132,7 +126,10 @@ body {
             if (!gameStarted) { clearInterval(fall); return; }
             pos += FALL_SPEED; 
             word.style.top = pos + "%";
-            if (pos > 100) { clearInterval(fall); word.remove(); }
+            if (pos > 100) { 
+                clearInterval(fall); 
+                word.remove(); 
+            }
         }, 20);
     }
 
@@ -144,7 +141,6 @@ body {
             
             el.style.background = "#28a745";
             
-            // Speak then trigger the next level
             speak("Correct! " + fullSentence, () => {
                 setTimeout(() => {
                     currentLevel++;
@@ -159,5 +155,6 @@ body {
             speak("Try again!");
         }
     }
-</script></body>
+</script>
+</body>
 </html>
