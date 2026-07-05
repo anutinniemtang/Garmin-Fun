@@ -59,11 +59,16 @@ body {
     const SPAWN_RATE = 2000;
 
     const levels = [
-        { sent: "Gamin wants to ___ a superstar.", ans: "be" },
-        { sent: "Please ___ here.", ans: "come" },
-        { sent: "She is a ___ friend.", ans: "good" },
-        { sent: "___ the door open.", ans: "pull" },
-        { sent: "Football is a ___ sport.", ans: "popular" }
+        { sent: "CL_P (ตัดออก)", ans: "I", full: "CLIP(ตัดออก)" },
+        { sent: "SL_P (ลื่น)", ans: "I", full: "SLIP(ลื่น)" },
+        { sent: "FL_G (ธง)", ans: "A", full: "FLAG(ธง)" },
+        { sent: "BL_CK (สีดำ)", ans: "A", full: "BLACK(สีดำ)" },
+        { sent: "PLA_ (แผนการ)", ans: "N", full: "PLAN(แผนการ)" },
+        { sent: "B_ (เป็น)", ans: "E", full: "BE(เป็น)" },
+        { sent: "F_IP (พลิก)", ans: "L", full: "FLIP(พลิก)" },
+        { sent: "CO_E (มา)", ans: "M", full: "COME(มา)" },
+        { sent: "GOO_ (ดี)", ans: "D", full: "GOOD(ดี)" },
+        { sent: "P_LL (ดึง)", ans: "U", full: "PULL(ดึง)" }
     ];
     
     let currentLevel = 0;
@@ -76,21 +81,14 @@ body {
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'en-US';
         msg.rate = 0.9;
-        
-        msg.onend = () => { 
-            isSpeaking = false; 
-            if (callback) callback(); 
-        };
-        
+        msg.onend = () => { isSpeaking = false; if (callback) callback(); };
         window.speechSynthesis.speak(msg);
     }
 
     function startGame() {
         document.getElementById('overlay').style.display = 'none';
         const music = document.getElementById('bgMusic');
-        music.volume = 0.3; 
         music.play().catch(e => console.log("Music blocked"));
-        
         gameStarted = true;
         updateSentence();
         setInterval(spawnWord, SPAWN_RATE);
@@ -98,71 +96,54 @@ body {
 
     function updateSentence() {
         if (currentLevel >= levels.length) return;
-        const s = levels[currentLevel].sent;
-        document.getElementById('sentence-box').innerHTML = s;
-        let textToRead = s.replace("___", ""); 
-        speak(textToRead);
+        document.getElementById('sentence-box').innerHTML = levels[currentLevel].sent;
     }
 
     function spawnWord() {
         if (!gameStarted) return;
-        const words = ["be", "come", "good", "pull", "popular"];
-        const word = document.createElement('div');
-        word.className = 'word';
-        word.innerText = words[Math.floor(Math.random() * words.length)];
-        word.style.left = Math.random() * 60 + 10 + "%"; 
-        word.style.top = "-10%";
+        const letters = ["A", "I", "U", "E", "N", "L", "M", "D"]; 
+        const letterDiv = document.createElement('div');
+        letterDiv.className = 'word';
+        letterDiv.innerText = letters[Math.floor(Math.random() * letters.length)];
+        letterDiv.style.left = Math.random() * 60 + 10 + "%"; 
+        letterDiv.style.top = "-10%";
         
-        word.addEventListener('mousedown', function() { check(this); });
-        word.addEventListener('touchstart', function(e) { 
-            e.stopPropagation(); 
+        // Mobile-ready interaction
+        letterDiv.addEventListener('mousedown', function() { check(this); });
+        letterDiv.addEventListener('touchstart', function(e) { 
+            e.stopPropagation(); // Stops the tap from accidentally hitting the background
             check(this); 
         });
         
-        document.getElementById('game-container').appendChild(word);
+        document.getElementById('game-container').appendChild(letterDiv);
         
         let pos = -10;
         let fall = setInterval(() => {
             if (!gameStarted) { clearInterval(fall); return; }
             pos += FALL_SPEED; 
-            word.style.top = pos + "%";
-            if (pos > 100) { 
-                clearInterval(fall); 
-                word.remove(); 
-            }
+            letterDiv.style.top = pos + "%";
+            if (pos > 100) { clearInterval(fall); letterDiv.remove(); }
         }, 20);
     }
 
     function check(el) {
         if (el.innerText === levels[currentLevel].ans) {
-            const fullSentence = levels[currentLevel].sent.replace("___", el.innerText);
-            const s = levels[currentLevel].sent.replace("___", `<span class="highlight">${el.innerText}</span>`);
-            document.getElementById('sentence-box').innerHTML = s;
-            
+            document.getElementById('sentence-box').innerHTML = levels[currentLevel].full;
             el.style.background = "#28a745";
-            
-            speak("Correct! " + fullSentence, () => {
-                setTimeout(() => {
-                    currentLevel++;
-                    if (currentLevel < levels.length) {
-                        updateSentence();
-                    } else {
-                        // MISSION COMPLETE LOGIC
-                        speak("Mission Complete! Gamin is a Hero!");
-                        const nextBtn = document.getElementById('resetBtn');
-                        nextBtn.innerText = "Start Mission 2";
-                        nextBtn.onclick = function() { window.location.href = 'game2.html'; };
-                        nextBtn.style.display = 'block';
-                    }
-                }, 1000);
+            speak("Correct! " + levels[currentLevel].full, () => {
+                currentLevel++;
+                if (currentLevel < levels.length) {
+                    updateSentence();
+                } else {
+                    speak("Mission Complete! Gamin is a Hero!");
+                    document.getElementById('resetBtn').style.display = 'block';
+                }
             });
-        } else {
-            speak("Try again!");
         }
     }
 
-    function resetGame() {
-        location.reload(); 
-    }
-</script></body>
+    function resetGame() { location.reload(); }
+</script>
+<button onclick="window.location.href='index.html'" style="position:absolute; top: 10px; left: 10px;">Back to Mission 1</button>
+</body>
 </html>
