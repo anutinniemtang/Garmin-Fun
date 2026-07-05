@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <style>
         body { margin: 0; overflow: hidden; background: #222; font-family: 'Arial', sans-serif; }
+body {
+    /* Add this line */
+    touch-action: manipulation; 
+}
         #game-container { 
             width: 100vw; height: 100vh; 
             background: url('garmin sideword (7).png') no-repeat center center/cover;
@@ -27,6 +31,7 @@
             background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center;
             z-index: 10; color: white; font-size: 5vw; cursor: pointer;
         }
+
     </style>
 </head>
 <body>
@@ -103,11 +108,13 @@
         word.style.left = Math.random() * 60 + 10 + "%"; 
         word.style.top = "-10%";
         
-        word.onclick = function() { 
-            if (this.dataset.clicked || isSpeaking) return;
-            this.dataset.clicked = "true";
-            check(this); 
-        };
+        word.ontouchstart = function(e) { 
+    e.preventDefault(); // Prevents the browser from simulating a click
+    if (this.dataset.clicked || isSpeaking) return;
+    this.dataset.clicked = "true";
+    check(this); 
+}; 
+      
         
         document.getElementById('game-container').appendChild(word);
         
